@@ -13,7 +13,8 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.18.0",
-    "dotenv": "^6.0.0"
+    "dotenv": "^6.0.0",
+    "svn-spawn": "^0.1.5"
   },
   "devDependencies": {
     "eslint": "^4.19.1",

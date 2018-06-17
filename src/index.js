@@ -2,6 +2,7 @@ require('dotenv').config();
 const axios = require('axios');
 const JIRA = require('./jira.js');
 const GITHUB = require('./github.js');
+const SVN = require('./svn.js');
 
 /**
  * 今回対象のIssueのキー名のリストを取得する
@@ -44,6 +45,11 @@ async function main() {
         console.log(info.filename);
         console.log(info.status);
         // console.log(info.patch);
+
+        // TODO 単純ファイル名でSVN検索
+        const svnUrl = 'https://xxxxx/repo';
+        const simpleFileName = info.filename.substring(info.filename.lastIndexOf('/') + 1);
+        const svnFiles = SVN.findFilePath(svnUrl, simpleFileName);
       });
     });
   });
