@@ -1,15 +1,18 @@
-const axios = require('axios');
+const rp = require('request-promise');
 
-function getPullRequestFiles(owner, repository, pullRequestNumber) {
-  const url = `https://api.github.com/repos/${owner}/${repository}/pulls/${pullRequestNumber}/files`;
+const getPullRequestFiles = (owner, repository, pullRequestNumber) => {
+  const uri = `https://api.github.com/repos/${owner}/${repository}/pulls/${pullRequestNumber}/files`;
   const options = {
-    url,
+    uri,
     method: 'GET',
-    responseType: 'json'
+    json: true,
+    headers: {
+      'User-Agent': 'request'
+    }
   };
 
-  return axios(options).then(response => {
-    return response.data.map(info => {
+  return rp(options).then(response => {
+    return response.map(info => {
       return {
         filename: info.filename,
         status: info.status,
@@ -20,7 +23,7 @@ function getPullRequestFiles(owner, repository, pullRequestNumber) {
       };
     });
   });
-}
+};
 
 module.exports = {
   getPullRequestFiles

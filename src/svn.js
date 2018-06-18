@@ -1,7 +1,7 @@
 require('dotenv').config();
 
-const userName = process.env.SVN_USERNAME;
-const passowrd = process.env.SVN_PASSWORD;
+const username = process.env.SVN_USERNAME;
+const password = process.env.SVN_PASSWORD;
 
 const Client = require('svn-spawn');
 const client = new Client({
@@ -10,20 +10,37 @@ const client = new Client({
   noAuthCache: true
 });
 
-function findFilePath(svnUrl, simpleFileName, filter = filename => true) {
-  return new Promise((resolve, reject) => {
+let result;
+
+const findAllFiles = async svnUrls => {
+  const result = await Promise.all(
+    svnUrls.map(async svnUrl => {
+      const files = await findFiles(svnUrl);
+      return files;
+    })
+  );
+  return Array.prototype.concat.apply([], result);
+};
+
+const findFiles = async svnUrl => {
+  const result = await new Promise((resolve, reject) => {
     client.cmd(['list', '--recursive', svnUrl], (err, data) => {
       if (err) {
         reject(err);
       } else {
-        // TODO 指定したフィルタリング関数を使う
-        // TODO ファイル名でフィルタリング
-        resolve(data);
+        const files = data
+          .replace(/ /g, '')
+          .split('\n')
+          .map(f => svnUrl + f);
+        resolve(files);
       }
     });
   });
-}
+
+  return result;
+};
 
 module.exports = {
-  findFilePath
+  findAllFiles,
+  findFiles
 };
