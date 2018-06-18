@@ -15,6 +15,7 @@ async function main() {
   const jireBaseUrl = process.env.JIRA_BASE_URL;
   const jiraUserName = process.env.JIRA_USERNAME;
   const jiraPassowrd = process.env.JIRA_PASSWORD;
+  const githubToken = process.env.GITHUB_TOKEN;
 
   const svnUrls = process.env.SVN_ROPOSITORY_URLS.split(',');
   const svnAllFiles = await SVN.findAllFiles(svnUrls);
@@ -36,6 +37,7 @@ async function main() {
 
     pullRequests.forEach(async pull => {
       const files = await GITHUB.getPullRequestFiles(
+        githubToken,
         pull.owner,
         pull.repository,
         pull.pullRequestNumber
@@ -50,9 +52,9 @@ async function main() {
         // console.log(info.patch);
 
         // TODO 単純ファイル名でSVN検索
-        const simpleFileName = info.filename.substring(info.filename.lastIndexOf('/') + 1);
-        const filtered = svnAllFiles.filters(f => f.endsWith(simpleFileName));
-        console.log(filtered);
+        // const simpleFileName = info.filename.substring(info.filename.lastIndexOf('/') + 1);
+        // const filtered = svnAllFiles.filters(f => f.endsWith(simpleFileName));
+        // console.log(filtered);
       });
     });
   });

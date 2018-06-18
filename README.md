@@ -20,6 +20,7 @@ JIRA の指定した ISSUE に紐づくファイル一覧を GitHub と SVN か�
   SVN_ROPOSITORY_URLS ='https://XXXXX,https://YYYYY,https://ZZZZZ'
   SVN_USERNAME = 'XXXXX'
   SVN_PASSWORD = 'XXXXX'
+  GITHUB_TOKEN = 'XXXXX'
   ```
 
 - 実行

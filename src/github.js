@@ -1,13 +1,14 @@
 const rp = require('request-promise');
 
-const getPullRequestFiles = (owner, repository, pullRequestNumber) => {
+const getPullRequestFiles = (token, owner, repository, pullRequestNumber) => {
   const uri = `https://api.github.com/repos/${owner}/${repository}/pulls/${pullRequestNumber}/files`;
   const options = {
     uri,
     method: 'GET',
     json: true,
     headers: {
-      'User-Agent': 'request'
+      'User-Agent': 'request',
+      Authorization: `token ${token}`
     }
   };
 
