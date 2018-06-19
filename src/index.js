@@ -3,21 +3,14 @@ const JIRA = require('./jira.js');
 const GITHUB = require('./github.js');
 const SVN = require('./svn.js');
 
-/**
- * 今回対象のIssueのキー名のリストを取得する
- */
-function issues() {
-  // TODO 実装
-  return ['NAB-192', 'NAB-193'];
-}
-
 async function main() {
   const jireBaseUrl = process.env.JIRA_BASE_URL;
   const jiraUserName = process.env.JIRA_USERNAME;
   const jiraPassowrd = process.env.JIRA_PASSWORD;
+  const jiraIssues = process.env.JIRA_ISSUES.split(',');
   const githubToken = process.env.GITHUB_TOKEN;
-
   const svnUrls = process.env.SVN_ROPOSITORY_URLS.split(',');
+
   const svnAllFiles = await SVN.findAllFiles(svnUrls);
   console.log(svnAllFiles);
 
@@ -25,7 +18,7 @@ async function main() {
     console.log(error)
   );
 
-  issues().forEach(async issueKey => {
+  jiraIssues.forEach(async issueKey => {
     const issue = await JIRA.getIssue(jireBaseUrl, session, issueKey).catch(error =>
       console.log(error)
     );

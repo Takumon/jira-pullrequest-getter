@@ -14,13 +14,14 @@ JIRA の指定した ISSUE に紐づくファイル一覧を GitHub と SVN か�
   プロジェクトルート配下に`.env`ファイルを作成
 
   ```
-  JIRA_BASE_URL = 'https://XXXXX'
-  JIRA_USERNAME = 'XXXXX'
-  JIRA_PASSWORD = 'XXXXX'
-  SVN_ROPOSITORY_URLS ='https://XXXXX,https://YYYYY,https://ZZZZZ'
-  SVN_USERNAME = 'XXXXX'
-  SVN_PASSWORD = 'XXXXX'
-  GITHUB_TOKEN = 'XXXXX'
+  JIRA_BASE_URL = "https://XXXXX"
+  JIRA_USERNAME = "XXXXX"
+  JIRA_PASSWORD = "XXXXX"
+  JIRA_ISSUES = "XXXX,XXXX,XXXX"
+  SVN_ROPOSITORY_URLS = "https://XXXXX,https://YYYYY,https://ZZZZZ"
+  SVN_USERNAME = "XXXXX"
+  SVN_PASSWORD = "XXXXX"
+  GITHUB_TOKEN = "XXXXX"
   ```
 
 - 実行

@@ -30,7 +30,7 @@ const findFiles = async svnUrl => {
       } else {
         const files = data
           .replace(/ /g, '')
-          .split('\n')
+          .split('\r\n')
           .map(f => svnUrl + f);
         resolve(files);
       }
