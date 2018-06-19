@@ -2,7 +2,6 @@ require('dotenv').config();
 const JIRA = require('./jira.js');
 const GITHUB = require('./github.js');
 const SVN = require('./svn.js');
-const FileUtil = require('./file-util.js');
 
 async function main() {
   const jireBaseUrl = process.env.JIRA_BASE_URL;
@@ -11,7 +10,7 @@ async function main() {
   const jiraIssues = process.env.JIRA_ISSUES.split(',');
   const githubToken = process.env.GITHUB_TOKEN;
 
-  const svnAllFiles = await getSvnFileNameList();
+  const svnAllFiles = await SVN.getSvnFileNameList();
 
   const session = await JIRA.auth(jireBaseUrl, jiraUserName, jiraPassowrd).catch(error =>
     console.log(error)

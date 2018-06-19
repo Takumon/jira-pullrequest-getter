@@ -1,41 +1,58 @@
 require('dotenv').config();
+const os = require('os');
 
 const username = process.env.SVN_USERNAME;
 const password = process.env.SVN_PASSWORD;
 
 const Client = require('svn-spawn');
+const path = require('path');
+const FileUtil = require('./file-util.js');
+
 const client = new Client({
   username,
   password,
   noAuthCache: true
 });
 
+/**
+ * 環境変数SVN_ROPOSITORY_URLSに指定したSVNのURL配下のディレクトリとファイルのURL一覧を取得
+ *
+ * @return {string[]} SVNのディレクトリとファイルのURL一覧
+ */
 const getSvnFileNameList = async () => {
   const svnUrls = process.env.SVN_ROPOSITORY_URLS.split(',');
 
-  const cacheFile = `${__dirname}\\..\\svn-file-list.txt`;
-  let svnAllFiles;
+  const cacheFile = path.join(__dirname, '..', 'svn-file-list.txt');
+
+  // ファイルキャッシュがある場合は
   if (FileUtil.isExist(cacheFile)) {
-    const temp = await FileUtil.read(cacheFile);
-    svnAllFiles = temp.split('\r\n');
-  } else {
-    svnAllFiles = await SVN.findAllFiles(svnUrls);
-    await FileUtil.write(cacheFile, svnAllFiles.join('\r\n'));
+    // ファイルから読み込み
+    return (await FileUtil.read(cacheFile)).split(os.EOL);
   }
 
+  // ファイルキャッシュがない場合はSVNコマンドにてファイル一覧を作成
+  const svnAllFiles = await findAllFiles(svnUrls);
+  await FileUtil.write(cacheFile, svnAllFiles.join(os.EOL));
   return svnAllFiles;
 };
 
+/**
+ * 指定したSVNのURLリスト配下のディレクトリとファイルのURL一覧を取得する
+ *
+ * @param {string[]} svnUrls SVNのURLリスト
+ * @return {string[]} 指定したSVNのURLリスト配下のディレクトリとファイルのURL一覧
+ */
 const findAllFiles = async svnUrls => {
-  const result = await Promise.all(
-    svnUrls.map(async svnUrl => {
-      const files = await findFiles(svnUrl);
-      return files;
-    })
-  );
+  const result = await Promise.all(svnUrls.map(async url => await findFiles(url)));
   return Array.prototype.concat.apply([], result);
 };
 
+/**
+ * 指定したSVNのURL配下のディレクトリとファイルのURL一覧を取得する
+ *
+ * @param {string} svnUrl SVNのURL
+ * @return {string[]} 指定したSVNのURL配下のディレクトリとファイルのURL一覧
+ */
 const findFiles = async svnUrl => {
   const result = await new Promise((resolve, reject) => {
     client.cmd(['list', '--recursive', svnUrl], (err, data) => {
@@ -44,8 +61,8 @@ const findFiles = async svnUrl => {
       } else {
         const files = data
           .replace(/ /g, '')
-          .split('\r\n')
-          .map(f => svnUrl + f);
+          .split(os.EOL)
+          .map(file => svnUrl + file);
         resolve(files);
       }
     });
@@ -55,6 +72,7 @@ const findFiles = async svnUrl => {
 };
 
 module.exports = {
+  getSvnFileNameList,
   findAllFiles,
   findFiles
 };
