@@ -2,6 +2,23 @@ require('dotenv').config();
 const JIRA = require('./jira.js');
 const GITHUB = require('./github.js');
 const SVN = require('./svn.js');
+const FileUtil = require('./file-util.js');
+
+const getSvnFileNameList = async () => {
+  const svnUrls = process.env.SVN_ROPOSITORY_URLS.split(',');
+
+  const cacheFile = `${__dirname}\\..\\svn-file-list.txt`;
+  let svnAllFiles;
+  if (FileUtil.isExist(cacheFile)) {
+    const temp = await FileUtil.read(cacheFile);
+    svnAllFiles = temp.split('\r\n');
+  } else {
+    svnAllFiles = await SVN.findAllFiles(svnUrls);
+    await FileUtil.write(cacheFile, svnAllFiles.join('\r\n'));
+  }
+
+  return svnAllFiles;
+};
 
 async function main() {
   const jireBaseUrl = process.env.JIRA_BASE_URL;
@@ -9,10 +26,8 @@ async function main() {
   const jiraPassowrd = process.env.JIRA_PASSWORD;
   const jiraIssues = process.env.JIRA_ISSUES.split(',');
   const githubToken = process.env.GITHUB_TOKEN;
-  const svnUrls = process.env.SVN_ROPOSITORY_URLS.split(',');
 
-  const svnAllFiles = await SVN.findAllFiles(svnUrls);
-  console.log(svnAllFiles);
+  const svnAllFiles = await getSvnFileNameList();
 
   const session = await JIRA.auth(jireBaseUrl, jiraUserName, jiraPassowrd).catch(error =>
     console.log(error)
@@ -44,10 +59,10 @@ async function main() {
         console.log(info.status);
         // console.log(info.patch);
 
-        // TODO 単純ファイル名でSVN検索
-        // const simpleFileName = info.filename.substring(info.filename.lastIndexOf('/') + 1);
-        // const filtered = svnAllFiles.filters(f => f.endsWith(simpleFileName));
-        // console.log(filtered);
+        const simpleFileName = info.filename.substring(info.filename.lastIndexOf('/') + 1);
+        const filtered = svnAllFiles.filter(f => f.endsWith(simpleFileName));
+        console.log(filtered);
+        return filtered;
       });
     });
   });

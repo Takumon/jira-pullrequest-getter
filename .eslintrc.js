@@ -7,7 +7,13 @@ module.exports = {
     ecmaVersion: 2017
   },
   rules: {
-    quotes: [ERROR, 'single'],
+    "semi": ["error", "always"],
+    "semi-spacing": ["error", { "after": true, "before": false }],
+    "semi-style": ["error", "last"],
+    "no-extra-semi": "error",
+    "no-unexpected-multiline": "error",
+    "no-unreachable": "error",
+    "quotes": [ERROR, 'single'],
     'max-len': [1, 100, 2]
   }
 };
