@@ -30,6 +30,19 @@ JIRA の指定した ISSUE に紐づくファイル一覧を GitHub と SVN か�
   $ npm start
   ```
 
+## 環境設定
+
+ソースを VSCode で編集する場合は下記を基本設定に追加（保存時にフォーマットしてくれるようになる）
+
+```
+{
+  ・・・
+  "editor.formatOnSave": true,
+  "prettier.eslintIntegration": true,
+  ・・・
+}
+```
+
 ## 注意事項
 
 [GitHub API の回数制限](https://developer.github.com/v3/#rate-limiting)に注意
