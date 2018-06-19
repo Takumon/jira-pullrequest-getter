@@ -24,7 +24,19 @@ async function main() {
     const issueId = issue.id;
     const description = issue.fields.description;
 
+    console.log('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ');
+    console.log('## ' + issueKey);
+    console.log(description);
+
     const pullRequests = await JIRA.getPullRequestsOf(jireBaseUrl, session, issueId);
+
+    const modules = pullRequests
+      .map(p => p.repository)
+      .filter((element, index, array) => array.indexOf(element) === index);
+    console.log('### Modules');
+    modules.forEach(m => {
+      console.log('* ' + m);
+    });
 
     pullRequests.forEach(async pull => {
       const files = await GITHUB.getPullRequestFiles(
@@ -35,9 +47,6 @@ async function main() {
       );
 
       files.forEach(async info => {
-        console.log('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ');
-        console.log(issueKey);
-        console.log(description);
         console.log(info.filename);
         console.log(info.status);
         // console.log(info.patch);
