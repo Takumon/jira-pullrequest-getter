@@ -10,7 +10,21 @@ const client = new Client({
   noAuthCache: true
 });
 
-let result;
+const getSvnFileNameList = async () => {
+  const svnUrls = process.env.SVN_ROPOSITORY_URLS.split(',');
+
+  const cacheFile = `${__dirname}\\..\\svn-file-list.txt`;
+  let svnAllFiles;
+  if (FileUtil.isExist(cacheFile)) {
+    const temp = await FileUtil.read(cacheFile);
+    svnAllFiles = temp.split('\r\n');
+  } else {
+    svnAllFiles = await SVN.findAllFiles(svnUrls);
+    await FileUtil.write(cacheFile, svnAllFiles.join('\r\n'));
+  }
+
+  return svnAllFiles;
+};
 
 const findAllFiles = async svnUrls => {
   const result = await Promise.all(
