@@ -24,7 +24,7 @@ const auth = (baes_url, username, password) => {
   });
 };
 
-const getIssue = (baseUrl, session, issueKey) => {
+const getIssue = (baseUrl, project, session, issueKey) => {
   const options = {
     uri: `${baseUrl}/rest/api/2/issue/${issueKey}`,
     headers: {
@@ -36,6 +36,7 @@ const getIssue = (baseUrl, session, issueKey) => {
   };
 
   return rp(options).then(response => {
+    response.url = `${baseUrl}/projects/${project}/issues/${issueKey}`;
     return response;
   });
 };

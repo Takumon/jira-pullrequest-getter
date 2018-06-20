@@ -1,12 +1,11 @@
 require('dotenv').config();
 const os = require('os');
-
-const username = process.env.SVN_USERNAME;
-const password = process.env.SVN_PASSWORD;
-
 const Client = require('svn-spawn');
 const path = require('path');
 const FileUtil = require('./file-util.js');
+
+const username = process.env.SVN_USERNAME;
+const password = process.env.SVN_PASSWORD;
 
 const client = new Client({
   username,
