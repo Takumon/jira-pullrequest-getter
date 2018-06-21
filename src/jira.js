@@ -58,7 +58,8 @@ const getPullRequestsOf = (baseUrl, session, issueId) => {
   };
 
   return rp(options).then(response => {
-    return response.detail[0].pullRequests.map(info => {
+    // マージされたもののみ対象とする
+    return response.detail[0].pullRequests.filter(info => 'MERGED' == info.status).map(info => {
       const [temp, owner, repository, pullRequestNumber] = info.url.match(
         /https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/pull\/(\d+)/
       );
