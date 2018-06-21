@@ -6,6 +6,8 @@ const GITHUB = require('./github.js');
 const SVN = require('./svn.js');
 const FileUtil = require('./file-util.js');
 
+const getSimpleNameOf = filePath => filePath.substring(filePath.lastIndexOf('/'));
+
 async function main() {
   const jireBaseUrl = process.env.JIRA_BASE_URL;
   const jiraUserName = process.env.JIRA_USERNAME;
@@ -67,8 +69,8 @@ async function main() {
 
           await Promise.all(
             files.map(async info => {
-              const simpleFileName = info.filename.substring(info.filename.lastIndexOf('/') + 1);
-              const filtered = svnAllFiles.filter(f => f.endsWith(simpleFileName));
+              const simpleFileName = getSimpleNameOf(info.filename);
+              const filtered = svnAllFiles.filter(f => getSimpleNameOf(f) == simpleFileName);
               if (filtered.length === 0) {
                 output.push(`* (${info.status})${info.filename} ！候補なし！`);
                 // console.log(info.patch);
