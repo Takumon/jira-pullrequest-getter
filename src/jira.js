@@ -5,7 +5,7 @@ const rp = require('request-promise');
  *
  * @param {String} baes_url JIRAのベースURL(末尾スラッシュなし)
  */
-const auth = (baes_url, username, password) => {
+const auth = async (baes_url, username, password) => {
   const options = {
     uri: `${baes_url}/rest/auth/1/session`,
     headers: {
@@ -19,12 +19,11 @@ const auth = (baes_url, username, password) => {
     json: true
   };
 
-  return rp(options).then(response => {
-    return response.session;
-  });
+  const res = await rp(options);
+  return res.session;
 };
 
-const getIssue = (baseUrl, project, session, issueKey) => {
+const getIssue = async (baseUrl, project, session, issueKey) => {
   const options = {
     uri: `${baseUrl}/rest/api/2/issue/${issueKey}`,
     headers: {
@@ -35,13 +34,12 @@ const getIssue = (baseUrl, project, session, issueKey) => {
     json: true
   };
 
-  return rp(options).then(response => {
-    response.url = `${baseUrl}/projects/${project}/issues/${issueKey}`;
-    return response;
-  });
+  const res = await rp(options);
+  res.url = `${baseUrl}/projects/${project}/issues/${issueKey}`;
+  return res;
 };
 
-const getPullRequestsOf = (baseUrl, session, issueId) => {
+const getPullRequestsOf = async (baseUrl, session, issueId) => {
   const options = {
     uri: `${baseUrl}/rest/dev-status/1.0/issue/detail`,
     headers: {
@@ -57,18 +55,17 @@ const getPullRequestsOf = (baseUrl, session, issueId) => {
     json: true
   };
 
-  return rp(options).then(response => {
-    // マージされたもののみ対象とする
-    return response.detail[0].pullRequests.filter(info => 'MERGED' == info.status).map(info => {
-      const [temp, owner, repository, pullRequestNumber] = info.url.match(
-        /https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/pull\/(\d+)/
-      );
+  const res = await rp(options);
 
-      info.owner = owner;
-      info.repository = repository;
-      info.pullRequestNumber = pullRequestNumber;
-      return info;
-    });
+  return res.detail[0].pullRequests.map(info => {
+    const [temp, owner, repository, pullRequestNumber] = info.url.match(
+      /https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/pull\/(\d+)/
+    );
+
+    info.owner = owner;
+    info.repository = repository;
+    info.pullRequestNumber = pullRequestNumber;
+    return info;
   });
 };
 
