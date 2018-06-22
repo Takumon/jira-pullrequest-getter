@@ -133,9 +133,10 @@ async function main() {
     '* ({{status}}){{masterFileUrl}} !{{svnInfo.status}}!',
     // '  * {{svnInfo.files}}',
     '{{#if svnInfo.files}}',
+    // '  * {{svnInfo.files}}',
     '{{#each svnInfo.files}}',
     '  * {{this}}',
-    '{{#each}}',
+    '{{/each}}',
     '{{/if}}',
     '{{/githubFiles}}',
 
