@@ -110,7 +110,7 @@ async function main() {
   );
 
   const markdownTempateSrc = await FileUtil.read(
-    path.join(__dirname, 'markdown-result-template.txt')
+    path.join(__dirname, 'markdown-result-template.handlebars')
   );
   const markdownTempate = Handlebars.compile(markdownTempateSrc);
   const context = markdownTempate({ issues });
