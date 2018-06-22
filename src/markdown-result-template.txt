@@ -1,0 +1,29 @@
+{{#issues}}
+
+## {{issueKey}}
+{{ issue.url }}
+
+### 概要
+{{ issue.description }}
+
+### プルリクエスト
+{{#pullRequests}}
+* [{{name}}]({{url}})
+{{/pullRequests}}
+
+### モジュール
+{{#modules}}
+* [{{repository}}](http://github.com/{{owner}}/{{repository}})
+{{/modules}}
+
+### 修正ファイル
+{{#githubFiles}}
+* ({{status}}){{masterFileUrl}} !{{svnInfo.status}}!
+{{#if svnInfo.files}}
+{{#each svnInfo.files}}
+    * {{this}}
+{{/each}}
+{{/if}}
+{{/githubFiles}}
+
+{{/issues}}

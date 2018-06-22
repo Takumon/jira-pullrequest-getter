@@ -109,40 +109,9 @@ async function main() {
     })
   );
 
-  const markdownTempateSrc = [
-    '{{#issues}}',
-
-    '## {{issueKey}}',
-    '{{ issue.url }}',
-
-    '### 概要',
-    '{{ issue.description }}',
-
-    '### プルリクエスト',
-    '{{#pullRequests}}',
-    '* [{{name}}]({{url}})',
-    '{{/pullRequests}}',
-
-    '### モジュール',
-    '{{#modules}}',
-    '* [{{repository}}](http://github.com/{{owner}}/{{repository}})',
-    '{{/modules}}',
-
-    '### 修正ファイル',
-    '{{#githubFiles}}',
-    '* ({{status}}){{masterFileUrl}} !{{svnInfo.status}}!',
-    // '  * {{svnInfo.files}}',
-    '{{#if svnInfo.files}}',
-    // '  * {{svnInfo.files}}',
-    '{{#each svnInfo.files}}',
-    '  * {{this}}',
-    '{{/each}}',
-    '{{/if}}',
-    '{{/githubFiles}}',
-
-    '{{/issues}}'
-  ].join(os.EOL);
-
+  const markdownTempateSrc = await FileUtil.read(
+    path.join(__dirname, 'markdown-result-template.txt')
+  );
   const markdownTempate = Handlebars.compile(markdownTempateSrc);
   const context = markdownTempate({ issues });
   const distPath = path.join(__dirname, '..', 'result.md');
