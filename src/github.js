@@ -1,4 +1,5 @@
 const rp = require('request-promise');
+const SVN = require('./svn.js');
 
 // 本処理の前提
 // 「プルリクエストは専用ブランチをマスターブランチにマージする想定」
@@ -28,6 +29,14 @@ const rp = require('request-promise');
       content_after: string // プルリクエスト後の状態のファイル
       url_before: string, // (status != 'added'の場合)プルリクエスト前の状態のファイルのURL
       content_before: string // (status != 'added'の場合)プルリクエスト前の状態のファイル
+
+      svnInfo: {
+        status: '候補なし' |  '候補確定' | '候補複数',
+        files: [
+          url: string, // SVNのファイルURL
+          content: string // SVNのファイル
+        ]
+      }
 
     }
   ]
@@ -91,6 +100,10 @@ const getPullRequestFiles = async (token, owner, repository, pullRequestNumber) 
       if (mapped.url_before) {
         mapped.content_before = await get(mapped.url_before, token, false).catch(err => {});
       }
+
+
+      const svnAllFiles = await SVN.getSvnFileNameList();
+      mapped.svnInfo = await SVN.findSvnInfo(mapped.url_master, svnAllFiles);
 
       return mapped;
     })

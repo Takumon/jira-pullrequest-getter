@@ -20,9 +20,9 @@
 {{#githubFiles}}
 * ({{status}}){{url_master}} !{{svnInfo.status}}!
 {{#if svnInfo.files}}
-{{#each svnInfo.files}}
-    * {{this}}
-{{/each}}
+{{#svnInfo.files}}
+    * {{url}}
+{{/svnInfo.files}}
 {{/if}}
 {{/githubFiles}}
 

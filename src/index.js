@@ -9,19 +9,12 @@ const GITHUB = require('./github.js');
 const SVN = require('./svn.js');
 const FileUtil = require('./file-util.js');
 
-const SERCH_STATUS = {
-  NOT_FOUND: '候補なし',
-  NARROW_DOWN: '候補確定',
-  NOT_NARROW_DOWN: '候補複数'
-};
-
 const getDirName = path.dirname;
 
 const createDirAndWrite = (path, contents) => {
   mkdirp.sync(getDirName(path));
   fs.writeFileSync(path, contents);
 };
-
 
 /**
  * 調査結果を出力する
@@ -48,12 +41,12 @@ const createReport = async (distDirPath, issues) => {
  *  変更後ファイル： 「単純ファイル名.プルリクエスト番号.ステータス.after」　※削除の時は存在しない
  *  変更前ファイル： 「単純ファイル名.プルリクエスト番号.ステータス.before」 ※追加の時は存在しない　名前変更の時は変更後の名前も情報として追加する
  *  変更差分：      「単純ファイル名.プルリクエスト番号.ステータス.patch」
+ *  SVNファイル：   「単純ファイル名.プルリクエスト番号.ステータス.svn」　※複数候補がある場合は、「svn_1」のように候補番号をつける
  *
  * @param {string} distDirPath 出力先ディレクトリのファイルパス
  * @param {string} issues JIRAのイシューごとに情報をまとめたもの
  */
 const createPullRequestDiff = (distDirPath, issues) => {
-
   issues.forEach(issue => {
     const issueDirPath = path.join(distDirPath, issue.issueKey);
     mkdirp.sync(issueDirPath);
@@ -90,43 +83,25 @@ const createPullRequestDiff = (distDirPath, issues) => {
           createDirAndWrite(createPath(`${previousSimpleFileName}.before`), file.content_before);
           createDirAndWrite(createPath('patch'), file.patch);
         }
+
+        // SVNのバージョンごとに処理したい
+        const svnFiles = file.svnInfo.files;
+        if (svnFiles.length === 0) {
+          createDirAndWrite(createPath('svn.not_found'), 'not_found');
+        } else if (svnFiles.length === 1) {
+          createDirAndWrite(createPath('svn'), svnFiles[0].content);
+        } else {
+          // 二つ以上検索結果がある時
+          // TODO 数値で区別した時に、どれがどれかわかるようにしたい（レポートに記載？）
+          svnFiles.forEach((svnFile, index) => {
+            createDirAndWrite(createPath(`svn_${index}`), svnFile.content);
+          });
+        }
+
       });
     });
   });
 };
-
-/**
- * 指定したファイルパスから単純ファイル名を取得する
- *
- * @param {string} filePath ファイルパス
- * @return {string} 単純ファイル名
- */
-const getSimpleName = filePath => filePath.substring(filePath.lastIndexOf('/') + 1);
-
-/**
- * 指定したGitHubのファイルパスに該当するSVNのファイルURLを検索する
- * 検索結果は配列で返す(不確定な検索なので複数件返ってくることもある)
- *
- * @param {string} masterFileUrl GitHubのファイルパス
- * @param {string} svnAllFiles SVNのファイルパス一覧
- * @return {object} 検索結果（ステータス、ファイルパスの配列）
- */
-const findSvnInfo = (masterFileUrl, svnAllFiles) => {
-  const simpleNameOfGitHubFile = getSimpleName(masterFileUrl);
-  const files = svnAllFiles.filter(svnFile => getSimpleName(svnFile) == simpleNameOfGitHubFile);
-  const status =
-    files.length === 0
-      ? SERCH_STATUS.NOT_FOUND
-      : files.length === 1
-        ? SERCH_STATUS.NARROW_DOWN
-        : SERCH_STATUS.NOT_NARROW_DOWN;
-
-  return {
-    status,
-    files
-  };
-};
-
 
 /**
  * 実処理
@@ -139,7 +114,6 @@ async function main() {
   const jiraIssues = process.env.JIRA_ISSUES.split(',');
   const githubToken = process.env.GITHUB_TOKEN;
 
-  const svnAllFiles = await SVN.getSvnFileNameList();
 
   const session = await JIRA.auth(jireBaseUrl, jiraUserName, jiraPassowrd).catch(error =>
     console.log(error)
@@ -165,6 +139,7 @@ async function main() {
       );
 
       // プリリクエストに紐づくGitHubファイル情報を追加したプリクリエスト情報を取得
+      // SVN情報も合わせて取得
       const pullRequestDetails = await Promise.all(
         pullRequests.map(
           async pull =>
@@ -183,11 +158,6 @@ async function main() {
         pullRequestDetails.map(detail => detail.files)
       );
 
-      // GitHubファイル情報にプロパティとしてSVNファイル情報を追加
-      githubFiles.forEach(f => {
-        f.svnInfo = findSvnInfo(f.url_master, svnAllFiles);
-        return f;
-      });
 
       // TODO 項目ごとの必要可否検討
       return {
