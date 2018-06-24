@@ -160,7 +160,6 @@ const createPullRequestDiff = (destDirPath, issues) => {
           );
         } else {
           // 二つ以上検索結果がある時
-          // TODO 数値で区別した時に、どれがどれかわかるようにしたい（レポートに記載？）
           svnFiles.forEach((svnFile, index) => {
             createDirAndWrite(createPath(`svn_${index}`), svnFile.content);
             const patchPath = createPath(`patch.svn_${index}.html`);

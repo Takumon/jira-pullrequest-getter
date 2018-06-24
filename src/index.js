@@ -87,11 +87,6 @@ async function main() {
       });
 
 
-      // TODO 項目ごとの必要可否検討
-      // console.log(issue);
-      // console.log(issue.fields.description);
-      // console.log(issue.fields.summary);
-      // console.log(issue.url);
       return {
         key: issueKey,
         url: issue.url,
