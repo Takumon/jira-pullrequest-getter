@@ -28,22 +28,29 @@ async function main() {
       );
 
       const issueId = issue.id;
-      const issueUrl = issue.url;
-      const description = issue.fields.description;
 
       // プルリクエスト情報取得
-      const pullRequests = await JIRA.getPullRequestsOf(jireBaseUrl, session, issueId);
+      const _pullRequests = await JIRA.getPullRequestsOf(jireBaseUrl, session, issueId);
 
       // モジュール群取得
-      const modules = pullRequests.filter(
-        (self, index, array) =>
-          index === array.findIndex(other => self.repository === other.repository)
-      );
+      const modules = [];
+      _pullRequests.forEach(pullRequest => {
+        if (modules.find(f => f.repository === pullRequest.repository)){
+          const module = modules.find(f => f.repository === pullRequest.repository);
+          module.pullRequests.push(pullRequest);
+        } else {
+          modules.push({
+            repository: pullRequest.repository,
+            owner: pullRequest.owner,
+            pullRequests: [pullRequest]
+          });
+        }
+      });
 
       // プリリクエストに紐づくGitHubファイル情報を追加したプリクリエスト情報を取得
       // SVN情報も合わせて取得
       const pullRequestDetails = await Promise.all(
-        pullRequests.map(
+        _pullRequests.map(
           async pull =>
             await GITHUB.getPullRequestFiles(
               githubToken,
@@ -54,18 +61,42 @@ async function main() {
         )
       );
 
-      // プリリクエスト詳細情報からファイル情報だけ抽出
-      const githubFiles = Array.prototype.concat.apply(
-        [],
-        pullRequestDetails.map(detail => detail.files)
-      );
+      // モジュールごとにファイルを整理
+      const githubFiles = [];
+      pullRequestDetails.forEach(detail => {
+        if (githubFiles.find(f => f.repository === detail.repository)){
+          const repositoryInfo = githubFiles.find(f => f.repository === detail.repository);
+
+          repositoryInfo.files = repositoryInfo.files.concat(detail.files.map(f => {
+            f.pullRequestNumber = detail.number;
+            return f;
+          }));
+
+        } else {
+          const repositoryInfo = {
+            owner: detail.owner,
+            repository: detail.repository,
+            files: detail.files.map(f => {
+              f.pullRequestNumber = detail.number;
+              return f;
+            })
+          };
+
+          githubFiles.push(repositoryInfo);
+        }
+      });
+
 
       // TODO 項目ごとの必要可否検討
+      // console.log(issue);
+      // console.log(issue.fields.description);
+      // console.log(issue.fields.summary);
+      // console.log(issue.url);
       return {
-        issueKey,
-        issueUrl,
-        description,
-        pullRequests,
+        key: issueKey,
+        url: issue.url,
+        description: issue.fields.description,
+        summary: issue.fields.summary,
         pullRequestDetails,
         modules,
         githubFiles

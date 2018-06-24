@@ -1,36 +1,35 @@
 {{#issues}}
 
-## {{issueKey}}
-{{ issue.url }}
+## [{{key}}]({{url}})
+{{summary}}
 
 ### 概要
-{{ issue.description }}
+{{ description }}
 
-### プルリクエスト
-{{#pullRequests}}
-* [{{name}}]({{url}})
-{{/pullRequests}}
-
-### モジュール
+### モジュールとプルリクエスト
 {{#modules}}
 * [{{repository}}](http://github.com/{{owner}}/{{repository}})
+  {{#pullRequests}}
+  * [#{{pullRequestNumber}} {{name}}]({{url}})
+  {{/pullRequests}}
 {{/modules}}
 
+
 ### 修正ファイル
-{{#pullRequestDetails}}
+{{#githubFiles}}
 * [{{repository}}](http://github.com/{{owner}}/{{repository}})
   {{#files}}
-  * [プルリク差分]({{../../issueKey}}/{{../repository}}/{{filename}}.{{../number}}.{{status}}.patch.html) ({{status}}) [{{filename}}]({{url_after}}) !{{svnInfo.status}}!
+  * #{{pullRequestNumber}} [プルリク差分]({{../../key}}/{{../repository}}/{{filename}}.{{pullRequestNumber}}.{{status}}.patch.html) ({{status}}) [{{filename}}]({{url_after}}) !{{svnInfo.status}}!
     {{#ifCond svnInfo.files.length 1}}
       {{#svnInfo.files}}
-    * [プルリク前との差分比較]({{../../issueKey}}/{{../repository}}/{{filename}}.{{../number}}.{{status}}.patch.svn.html) {{url}}
+    * [プルリク前との差分比較]({{../../key}}/{{../repository}}/{{filename}}.{{pullRequestNumber}}.{{status}}.patch.svn.html) {{url}}
        {{/svnInfo.files}}
     {{else}}
        {{#svnInfo.files}}
-    * [プルリク前との差分比較]({{../../issueKey}}/{{../repository}}/{{filename}}.{{../number}}.{{status}}.patch.svn_{{@index}}.html) {{url}}
+    * [プルリク前との差分比較]({{../../key}}/{{../repository}}/{{filename}}.{{pullRequestNumber}}.{{status}}.patch.svn_{{@index}}.html) {{url}}
        {{/svnInfo.files}}
     {{/ifCond}}
   {{/files}}
-{{/pullRequestDetails}}
+{{/githubFiles}}
 
 {{/issues}}

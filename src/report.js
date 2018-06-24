@@ -12,6 +12,9 @@ Handlebars.registerHelper('ifCond', function(v1, v2, options) {
 const FileUtil = require('./file-util.js');
 const createDirAndWrite = FileUtil.createDirAndWrite;
 const DiffUtil = require('./diff-util.js');
+
+
+
 /**
  * 調査結果を出力する
  *
@@ -60,7 +63,7 @@ const createReport = async (destDirPath, issues) => {
  */
 const createPullRequestDiff = (destDirPath, issues) => {
   issues.forEach(issue => {
-    const issueDirPath = path.join(destDirPath, issue.issueKey);
+    const issueDirPath = path.join(destDirPath, issue.key);
     mkdirp.sync(issueDirPath);
 
     issue.pullRequestDetails.forEach(pullRequestDetail => {
