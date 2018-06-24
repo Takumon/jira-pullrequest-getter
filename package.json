@@ -12,6 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "diff": "^3.5.0",
+    "diff2html": "^2.4.0",
     "dotenv": "^6.0.0",
     "fs": "0.0.1-security",
     "handlebars": "^4.0.11",

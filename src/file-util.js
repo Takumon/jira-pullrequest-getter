@@ -1,5 +1,8 @@
 //ファイル操作モジュールの追加
 const fs = require('fs');
+const mkdirp = require('mkdirp');
+const path = require('path');
+const getDirName = path.dirname;
 
 const read = path => {
   return new Promise((resolve, reject) => {
@@ -25,10 +28,16 @@ const write = (path, content) => {
   });
 };
 
+const createDirAndWrite = (path, contents) => {
+  mkdirp.sync(getDirName(path));
+  fs.writeFileSync(path, contents);
+};
+
 const isExist = path => fs.existsSync(path);
 
 module.exports = {
   isExist,
   read,
-  write
+  write,
+  createDirAndWrite
 };
