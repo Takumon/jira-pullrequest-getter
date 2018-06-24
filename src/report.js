@@ -23,17 +23,25 @@ const createReport = async (destDirPath, issues) => {
   await FileUtil.write(destPath, context);
 };
 
-// TODO SVNの情報も加える
 // TODO GitHubのPatchは改行コードを無視したい
 /**
  * プルリクエスト前後のソースコードとパッチファイルを出力する
  * フォルダ構成は JIRAのイシュー名/モジュール名　でその配下に実際のリポジトリと同様のフォルダを作成
  * ファイル名はステータス(追加、変更、削除、名前変更)によって異なる
- *  変更後ファイル： 「単純ファイル名.プルリクエスト番号.ステータス.after」　※削除の時は存在しない
- *  変更前ファイル： 「単純ファイル名.プルリクエスト番号.ステータス.before」 ※追加の時は存在しない　名前変更の時は変更後の名前も情報として追加する
- *  変更差分：      「単純ファイル名.プルリクエスト番号.ステータス.patch」
- *  SVNファイル：   「単純ファイル名.プルリクエスト番号.ステータス.svn」　※複数候補がある場合は、「svn_1」のように候補番号をつける
- *
+ * <dl>
+ *   <dt>変更後ファイル</dt>
+ *     <dd>「単純ファイル名.プルリクエスト番号.ステータス.after」　※削除の時は存在しない</dd>
+ *   <dt>変更前ファイル</dt>
+ *     <dd>「単純ファイル名.プルリクエスト番号.ステータス.before」 ※追加の時は存在しない　名前変更の時は変更後の名前も情報として追加する</dd>
+ *   <dt>変更差分</dt>
+ *     <dd>「単純ファイル名.プルリクエスト番号.ステータス.patch」</dd>
+ *   <dt>変更差分HTML(修正前ファイルと修正後ファイル)<dt>
+ *     <dd>「単純ファイル名.プルリクエスト番号.ステータス.patch.html」</dd>
+ *   <dt>SVNファイル</dt>
+ *     <dd>「単純ファイル名.プルリクエスト番号.ステータス.svn」　※複数候補がある場合は、「svn_1」のように候補番号をつける</dd>
+ *   <dt>差分比較HTML(SVNファイルと修正前ファイル)</dt>
+ *     <dd>「単純ファイル名.プルリクエスト番号.ステータス.patch.svn.html」　※複数候補がある場合は、「svn_1」のように候補番号をつける</dd>
+ * </dl>
  * @param {string} destDirPath 出力先ディレクトリのファイルパス
  * @param {string} issues JIRAのイシューごとに情報をまとめたもの
  */
@@ -123,11 +131,33 @@ const createPullRequestDiff = (destDirPath, issues) => {
           createDirAndWrite(createPath('svn.not_found'), 'not_found');
         } else if (svnFiles.length === 1) {
           createDirAndWrite(createPath('svn'), svnFiles[0].content);
+          const patchPath = createPath('patch.svn.html');
+
+          DiffUtil.createPatch(
+            path.dirname(patchPath),
+            path.basename(patchPath),
+            dirName,
+            svnFiles[0].content,
+            file.content_before,
+            svnFiles[0].url, // TODO URLでいいのか？検討
+            file.filename
+          );
         } else {
           // 二つ以上検索結果がある時
           // TODO 数値で区別した時に、どれがどれかわかるようにしたい（レポートに記載？）
           svnFiles.forEach((svnFile, index) => {
             createDirAndWrite(createPath(`svn_${index}`), svnFile.content);
+            const patchPath = createPath(`patch.svn_${index}.html`);
+
+            DiffUtil.createPatch(
+              path.dirname(patchPath),
+              path.basename(patchPath),
+              dirName,
+              svnFile.content,
+              file.content_before,
+              svnFile.url, // TODO URLでいいのか？検討
+              file.filename
+            );
           });
         }
       });
