@@ -1,12 +1,11 @@
 const mkdirp = require('mkdirp');
 const path = require('path');
-
+const marked = require('marked');
 const Handlebars = require('Handlebars');
 
 const FileUtil = require('./file-util.js');
 const createDirAndWrite = FileUtil.createDirAndWrite;
 const DiffUtil = require('./diff-util.js');
-
 /**
  * 調査結果を出力する
  *
@@ -14,13 +13,21 @@ const DiffUtil = require('./diff-util.js');
  * @param {string} issues JIRAのイシューごとに情報をまとめたもの
  */
 const createReport = async (destDirPath, issues) => {
+  // markdownで出力
   const markdownTempateSrc = await FileUtil.read(
-    path.join(__dirname, 'markdown-result-template.handlebars')
+    path.join(__dirname, 'template-markdown.handlebars')
   );
   const markdownTempate = Handlebars.compile(markdownTempateSrc);
-  const context = markdownTempate({ issues });
-  const destPath = path.join(destDirPath, 'result.md');
-  await FileUtil.write(destPath, context);
+  const markdownContext = markdownTempate({ issues });
+  const markdownDestPath = path.join(destDirPath, 'index.md');
+  await FileUtil.write(markdownDestPath, markdownContext);
+
+  // HTMLで出力
+  const htmlTempateSrc = await FileUtil.read(path.join(__dirname, 'template-html.handlebars'));
+  const htmlTempate = Handlebars.compile(htmlTempateSrc);
+  const htmlContext = htmlTempate({ html_markdown: marked(markdownContext) });
+  const htmlDestPath = path.join(destDirPath, 'index.html');
+  await FileUtil.write(htmlDestPath, htmlContext);
 };
 
 // TODO GitHubのPatchは改行コードを無視したい
