@@ -2,6 +2,12 @@ const mkdirp = require('mkdirp');
 const path = require('path');
 const marked = require('marked');
 const Handlebars = require('Handlebars');
+Handlebars.registerHelper('ifCond', function(v1, v2, options) {
+  if(v1 === v2) {
+    return options.fn(this);
+  }
+  return options.inverse(this);
+});
 
 const FileUtil = require('./file-util.js');
 const createDirAndWrite = FileUtil.createDirAndWrite;
