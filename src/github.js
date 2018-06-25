@@ -81,30 +81,36 @@ const getPullRequestFiles = async (token, owner, repository, pullRequestNumber) 
 
       // 修正後のファイルを取得
       mapped.content_after = await get(mapped.url_after, token, false);
+      const svnAllFiles = await SVN.getSvnFileNameList();
 
       // statusに応じてfile_url_beforeとprevious_filenameを追加
       if (file.status === 'added') {
         // 変更前ファイルは存在しないので何もしない
+        mapped.svnInfo = {
+          status: '候補なし',
+          files: []
+        };
       } else if (file.status === 'renamed') {
         mapped.url_before = `https://raw.githubusercontent.com/${owner}/${repository}/${
           pullrequest.base.sha
         }/${file.previous_filename}`;
         mapped.previous_filename = file.previous_filename;
+        // 変更前のファイルパスでSVNを検索
+        mapped.svnInfo = await SVN.findSvnInfo(
+          mapped.url_master.replace(mapped.filename, mapped.previous_filename),
+          svnAllFiles
+        );
       } else {
         mapped.url_before = `https://raw.githubusercontent.com/${owner}/${repository}/${
           pullrequest.base.sha
         }/${file.filename}`;
+        mapped.svnInfo = await SVN.findSvnInfo(mapped.url_master, svnAllFiles);
       }
 
       // 修正前のファイルがある場合は取得
       if (mapped.url_before) {
         mapped.content_before = await get(mapped.url_before, token, false).catch(err => {});
       }
-
-
-      const svnAllFiles = await SVN.getSvnFileNameList();
-      mapped.svnInfo = await SVN.findSvnInfo(mapped.url_master, svnAllFiles);
-
       return mapped;
     })
   );

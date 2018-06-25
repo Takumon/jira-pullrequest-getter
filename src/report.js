@@ -3,7 +3,7 @@ const path = require('path');
 const marked = require('marked');
 const Handlebars = require('Handlebars');
 Handlebars.registerHelper('ifCond', function(v1, v2, options) {
-  if(v1 === v2) {
+  if (v1 === v2) {
     return options.fn(this);
   }
   return options.inverse(this);
@@ -12,8 +12,6 @@ Handlebars.registerHelper('ifCond', function(v1, v2, options) {
 const FileUtil = require('./file-util.js');
 const createDirAndWrite = FileUtil.createDirAndWrite;
 const DiffUtil = require('./diff-util.js');
-
-
 
 /**
  * 調査結果を出力する
@@ -145,6 +143,9 @@ const createPullRequestDiff = (destDirPath, issues) => {
         const svnFiles = file.svnInfo.files;
         if (svnFiles.length === 0) {
           createDirAndWrite(createPath('svn.not_found'), 'not_found');
+          // 追加の場合はSVNにもないという想定で比較しない
+        } else if (file.status === 'added') {
+          createDirAndWrite(createPath('svn.not_found_for_added'), 'not_found');
         } else if (svnFiles.length === 1) {
           createDirAndWrite(createPath('svn'), svnFiles[0].content);
           const patchPath = createPath('patch.svn.html');

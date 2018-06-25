@@ -19,8 +19,6 @@ const SERCH_STATUS = {
   NOT_NARROW_DOWN: '候補複数'
 };
 
-
-
 /**
  * 環境変数SVN_ROPOSITORY_URLSに指定したSVNのURL配下のディレクトリとファイルのURL一覧を取得
  *
@@ -69,7 +67,7 @@ const findFiles = async svnUrl => {
         const files = data
           .replace(/ /g, '')
           .split(os.EOL)
-          .map(file => svnUrl + file);
+          .map(file => svnUrl + '/' + file);
         resolve(files);
       }
     });
