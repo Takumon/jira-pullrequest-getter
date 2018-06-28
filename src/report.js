@@ -64,87 +64,132 @@ const createPullRequestDiff = (destDirPath, issues) => {
     const issueDirPath = path.join(destDirPath, issue.key);
     mkdirp.sync(issueDirPath);
 
-    issue.pullRequestDetails.forEach(pullRequestDetail => {
-      const pullRequestDirPath = path.join(issueDirPath, pullRequestDetail.repository);
-      mkdirp.sync(pullRequestDirPath);
+    issue.modifiedPullRequestDetails.forEach(pullRequestDetail => {
+      const repositoryDirPath = path.join(issueDirPath, pullRequestDetail.repository);
+      mkdirp.sync(repositoryDirPath);
 
-      pullRequestDetail.files.forEach(file => {
-        const paths = file.filename.split('/');
-        const simpleName = paths.pop(); // pathsから単純ファイル名を削除
-        const dirName = paths.join('/');
-        const createPath = suffix => {
+      pullRequestDetail.files.forEach(githubFile => {
+        const [dirName, simpleName, dirPaths] = splitDirAndFile(githubFile.filename);
+
+        // GitHubのプルリクの差分などを出力
+        githubFile.pullRequests.forEach(pullRequest => {
+          const createPath = suffix => {
+            // pushは破壊的なのでconcatを使う
+            const pathArray = [repositoryDirPath]
+              .concat(dirPaths)
+              .concat([
+                `${simpleName}.${pullRequest.pullRequestNumber}.${pullRequest.status}.${suffix}`
+              ]);
+            return path.join.apply(null, pathArray);
+          };
+
+          if (pullRequest.status === 'modified') {
+            createDirAndWrite(createPath('after'), pullRequest.content_after);
+            createDirAndWrite(createPath('before'), pullRequest.content_before);
+            createDirAndWrite(createPath('patch'), pullRequest.patch);
+
+            const patchPath = createPath('patch.html');
+            DiffUtil.createPatch(
+              path.dirname(patchPath),
+              path.basename(patchPath),
+              dirName,
+              pullRequest.content_before,
+              pullRequest.content_after,
+              pullRequest.filename,
+              pullRequest.filename
+            );
+          } else if (pullRequest.status === 'added') {
+            createDirAndWrite(createPath('after'), pullRequest.content_after);
+            createDirAndWrite(createPath('patch'), pullRequest.patch);
+            const patchPath = createPath('patch.html');
+            DiffUtil.createPatch(
+              path.dirname(patchPath),
+              path.basename(patchPath),
+              dirName,
+              '',
+              pullRequest.content_after,
+              pullRequest.filename,
+              pullRequest.filename
+            );
+          } else if (pullRequest.status === 'deleted') {
+            reateDirAndWrite(createPath('before'), pullRequest.content_before);
+            createDirAndWrite(createPath('patch'), pullRequest.patch);
+            const patchPath = createPath('patch.html');
+            DiffUtil.createPatch(
+              path.dirname(patchPath),
+              path.basename(patchPath),
+              dirName,
+              pullRequest.content_before,
+              '',
+              pullRequest.filename,
+              pullRequest.filename
+            );
+          } else if (pullRequest.status === 'renamed') {
+            createDirAndWrite(createPath('after'), pullRequest.content_after);
+            // リネームの場合は修正前の単純ファイル名をファイル名に反映する
+            const previousSimpleFileName = pullRequest.previous_filename.split('/').pop();
+            createDirAndWrite(
+              createPath(`${previousSimpleFileName}.before`),
+              pullRequest.content_before
+            );
+            createDirAndWrite(createPath('patch'), file.patch);
+            const patchPath = createPath('patch.html');
+            DiffUtil.createPatch(
+              path.dirname(patchPath),
+              path.basename(patchPath),
+              dirName,
+              pullRequest.content_before,
+              pullRequest.content_after,
+              pullRequest.previous_filename,
+              pullRequest.filename
+            );
+          }
+        });
+
+        // GitHub１つのファイルに対して複数のプルリクエストがある場合は
+        // 一番古いプルリクエストのプルリクエスト前と
+        // 一番新しいプルリクエストのプルリクエスト後の差分を出力する
+        if (githubFile.pullRequests.length >= 2) {
+          const oldest = githubFile.pullRequests[0];
+          const latest = githubFile.pullRequests[githubFile.pullRequests.length - 1];
           // pushは破壊的なのでconcatを使う
-          const pathArray = [pullRequestDirPath]
-            .concat(paths)
-            .concat([`${simpleName}.${pullRequestDetail.number}.${file.status}.${suffix}`]);
-          return path.join.apply(null, pathArray);
-        };
+          const pathArray = [repositoryDirPath]
+            .concat(dirPaths)
+            .concat([
+              `${simpleName}.${oldest.pullRequestNumber}_${latest.pullRequestNumber}.patch.html`
+            ]);
+          const patchPath = path.join.apply(null, pathArray);
 
-        if (file.status === 'modified') {
-          createDirAndWrite(createPath('after'), file.content_after);
-          createDirAndWrite(createPath('before'), file.content_before);
-          createDirAndWrite(createPath('patch'), file.patch);
-
-          const patchPath = createPath('patch.html');
           DiffUtil.createPatch(
             path.dirname(patchPath),
             path.basename(patchPath),
             dirName,
-            file.content_before,
-            file.content_after,
-            file.filename,
-            file.filename
-          );
-        } else if (file.status === 'added') {
-          createDirAndWrite(createPath('after'), file.content_after);
-          createDirAndWrite(createPath('patch'), file.patch);
-          const patchPath = createPath('patch.html');
-          DiffUtil.createPatch(
-            path.dirname(patchPath),
-            path.basename(patchPath),
-            dirName,
-            '',
-            file.content_after,
-            file.filename,
-            file.filename
-          );
-        } else if (file.status === 'deleted') {
-          reateDirAndWrite(createPath('before'), file.content_before);
-          createDirAndWrite(createPath('patch'), file.patch);
-          const patchPath = createPath('patch.html');
-          DiffUtil.createPatch(
-            path.dirname(patchPath),
-            path.basename(patchPath),
-            dirName,
-            file.content_before,
-            '',
-            file.filename,
-            file.filename
-          );
-        } else if (file.status === 'renamed') {
-          createDirAndWrite(createPath('after'), file.content_after);
-          // リネームの場合は修正前の単純ファイル名をファイル名に反映する
-          const previousSimpleFileName = file.previous_filename.split('/').pop();
-          createDirAndWrite(createPath(`${previousSimpleFileName}.before`), file.content_before);
-          createDirAndWrite(createPath('patch'), file.patch);
-          const patchPath = createPath('patch.html');
-          DiffUtil.createPatch(
-            path.dirname(patchPath),
-            path.basename(patchPath),
-            dirName,
-            file.content_before,
-            file.content_after,
-            file.previous_filename,
-            file.filename
+            oldest.content_before,
+            latest.content_after,
+            oldest.previous_filename || oldest.filename,
+            latest.filename
           );
         }
 
-        // SVNのバージョンごとに処理したい
-        const svnFiles = file.svnInfo.files;
+        // SVNとGitHubの差分などを出力
+        const oldestPullRequest = githubFile.pullRequests[0];
+        const svnFiles = oldestPullRequest.svnInfo.files;
+        const createPath = suffix => {
+          // pushは破壊的なのでconcatを使う
+          const pathArray = [repositoryDirPath]
+            .concat(dirPaths)
+            .concat([
+              `${simpleName}.${oldestPullRequest.pullRequestNumber}.${
+                oldestPullRequest.status
+              }.${suffix}`
+            ]);
+          return path.join.apply(null, pathArray);
+        };
+
         if (svnFiles.length === 0) {
           createDirAndWrite(createPath('svn.not_found'), 'not_found');
           // 追加の場合はSVNにもないという想定で比較しない
-        } else if (file.status === 'added') {
+        } else if (oldestPullRequest.status === 'added') {
           createDirAndWrite(createPath('svn.not_found_for_added'), 'not_found');
         } else if (svnFiles.length === 1) {
           createDirAndWrite(createPath('svn'), svnFiles[0].content);
@@ -155,9 +200,9 @@ const createPullRequestDiff = (destDirPath, issues) => {
             path.basename(patchPath),
             dirName,
             svnFiles[0].content,
-            file.content_before,
+            oldestPullRequest.content_before,
             svnFiles[0].url, // TODO URLでいいのか？検討
-            file.filename
+            oldestPullRequest.filename
           );
         } else {
           // 二つ以上検索結果がある時
@@ -170,15 +215,22 @@ const createPullRequestDiff = (destDirPath, issues) => {
               path.basename(patchPath),
               dirName,
               svnFile.content,
-              file.content_before,
+              oldestPullRequest.content_before,
               svnFile.url, // TODO URLでいいのか？検討
-              file.filename
+              oldestPullRequest.filename
             );
           });
         }
       });
     });
   });
+};
+
+const splitDirAndFile = path => {
+  const paths = path.split('/');
+  const file = paths.pop(); // pathsから単純ファイル名を削除
+  const dir = paths.join('/');
+  return [dir, file, paths];
 };
 
 module.exports = {
