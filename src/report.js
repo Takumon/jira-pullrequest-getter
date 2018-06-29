@@ -170,13 +170,14 @@ const createPullRequestDiff = (destDirPath, issues) => {
             latest.filename
           );
 
-          const relativePath = [issue.key, pullRequestDetail.repository]
-          .concat(dirPaths)
-          .concat([
-            `${simpleName}.${oldest.pullRequestNumber}_${latest.pullRequestNumber}.patch.html`
-          ]);
-          githubFile.allPullRequestDiff = path.join.apply(null, relativePath);
-          console.log('fdasfa', githubFile.allPullRequestDiff);
+          const relativeUrl = [issue.key, pullRequestDetail.repository]
+            .concat(dirPaths)
+            .concat([
+              `${simpleName}.${oldest.pullRequestNumber}_${latest.pullRequestNumber}.patch.html`
+            ]);
+          // pathでjoinしてしまうとWindowsではバックスラッシュつなぎになってしまいURLとして成り立たないため
+          // 単純にスラッシュでjoinする
+          githubFile.allPullRequestDiff = relativeUrl.join('/');
         }
 
         // SVNとGitHubの差分などを出力
@@ -194,26 +195,23 @@ const createPullRequestDiff = (destDirPath, issues) => {
           return path.join.apply(null, pathArray);
         };
 
-        if (svnFiles.length === 0) {
-          createDirAndWrite(createPath('svn.not_found'), 'not_found');
-          // 追加の場合はSVNにもないという想定で比較しない
-        } else if (oldestPullRequest.status === 'added') {
-          createDirAndWrite(createPath('svn.not_found_for_added'), 'not_found');
-        } else if (svnFiles.length === 1) {
-          createDirAndWrite(createPath('svn'), svnFiles[0].content);
-          const patchPath = createPath('patch.svn.html');
+        const createUrl = suffix => {
+          // pushは破壊的なのでconcatを使う
+          const pathArray = [issue.key, pullRequestDetail.repository]
+            .concat(dirPaths)
+            .concat([
+              `${simpleName}.${oldestPullRequest.pullRequestNumber}.${
+                oldestPullRequest.status
+              }.${suffix}`
+            ]);
+          return pathArray.join('/');
+        };
 
-          DiffUtil.createPatch(
-            path.dirname(patchPath),
-            path.basename(patchPath),
-            dirName,
-            svnFiles[0].content,
-            oldestPullRequest.content_before,
-            svnFiles[0].url, // TODO URLでいいのか？検討
-            oldestPullRequest.filename
-          );
+        // 追加の場合はSVNにもないという想定で比較しない
+        if (oldestPullRequest.status === 'added') {
+          createDirAndWrite(createPath('svn.not_found_for_added'), 'not_found');
+          githubFile.svnPatchFiles = [createPath('svn.not_found_for_added')];
         } else {
-          // 二つ以上検索結果がある時
           svnFiles.forEach((svnFile, index) => {
             createDirAndWrite(createPath(`svn_${index}`), svnFile.content);
             const patchPath = createPath(`patch.svn_${index}.html`);

@@ -184,9 +184,9 @@ const groupingByModuleAndFile = pullRequestDetails => {
   });
 
   // プルリクエスト番号ごとにソート
-  githubFiles.forEach(module => 
-    module.files.forEach(file => 
-      file.pullRequests.sort((a, b) => 
+  githubFiles.forEach(module =>
+    module.files.forEach(file =>
+      file.pullRequests.sort((a, b) =>
         Number(a.pullRequestNumber) - Number(b.pullRequestNumber)))
   );
 
