@@ -20,7 +20,7 @@
 * [{{repository}}](http://github.com/{{owner}}/{{repository}})
   {{#files}}
   * {{filename}}
-    * GitHub
+    * GitHub{{#if allPullRequestDiff}} [All Diff]({{{allPullRequestDiff}}}) {{/if}}
     {{#pullRequests}}
       * #{{pullRequestNumber}} [Diff]({{../../../key}}/{{../../repository}}/{{../filename}}.{{pullRequestNumber}}.{{status}}.patch.html) ({{status}}) [{{filename}}]({{url_after}})
     {{/pullRequests}}

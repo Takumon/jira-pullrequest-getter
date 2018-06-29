@@ -24,6 +24,7 @@ const createPatch = (
   filenameA,
   filenameB
 ) => {
+
   const unifiedDiff = diff.createPatch(filename, contentA, contentB, filenameA, filenameB, {
     newlineIsToken: false,
     context: 10000

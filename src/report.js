@@ -132,7 +132,7 @@ const createPullRequestDiff = (destDirPath, issues) => {
               createPath(`${previousSimpleFileName}.before`),
               pullRequest.content_before
             );
-            createDirAndWrite(createPath('patch'), file.patch);
+            createDirAndWrite(createPath('patch'), pullRequest.patch);
             const patchPath = createPath('patch.html');
             DiffUtil.createPatch(
               path.dirname(patchPath),
@@ -164,11 +164,19 @@ const createPullRequestDiff = (destDirPath, issues) => {
             path.dirname(patchPath),
             path.basename(patchPath),
             dirName,
-            oldest.content_before,
-            latest.content_after,
-            oldest.previous_filename || oldest.filename,
+            oldest.content_before || '',
+            latest.content_after || '',
+            oldest.previous_filename || oldest.filename || '',
             latest.filename
           );
+
+          const relativePath = [issue.key, pullRequestDetail.repository]
+          .concat(dirPaths)
+          .concat([
+            `${simpleName}.${oldest.pullRequestNumber}_${latest.pullRequestNumber}.patch.html`
+          ]);
+          githubFile.allPullRequestDiff = path.join.apply(null, relativePath);
+          console.log('fdasfa', githubFile.allPullRequestDiff);
         }
 
         // SVNとGitHubの差分などを出力

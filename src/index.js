@@ -79,8 +79,8 @@ async function main() {
     // レポート出力
     const destDirPath = path.join(__dirname, '..', 'dest');
     mkdirp.sync(destDirPath);
-    await Report.createReport(destDirPath, issues);
     Report.createPullRequestDiff(destDirPath, issues);
+    await Report.createReport(destDirPath, issues);
   } catch (e) {
     console.log(e);
   }
@@ -184,13 +184,11 @@ const groupingByModuleAndFile = pullRequestDetails => {
   });
 
   // プルリクエスト番号ごとにソート
-  githubFiles.forEach(module => {
-    module.files.forEach(file => {
-      file.pullRequests.sort((a, b) => {
-        a.pullRequestNumber - b.pullRequestNumber;
-      });
-    });
-  });
+  githubFiles.forEach(module => 
+    module.files.forEach(file => 
+      file.pullRequests.sort((a, b) => 
+        Number(a.pullRequestNumber) - Number(b.pullRequestNumber)))
+  );
 
   return githubFiles;
 };
