@@ -9,6 +9,10 @@ Handlebars.registerHelper('ifCond', function(v1, v2, options) {
   return options.inverse(this);
 });
 
+Handlebars.registerHelper('simpleName', function(url) {
+  return path.basename(url);
+});
+
 const FileUtil = require('./file-util.js');
 const createDirAndWrite = FileUtil.createDirAndWrite;
 const DiffUtil = require('./diff-util.js');
@@ -28,6 +32,16 @@ const createReport = async (destDirPath, issues) => {
   const markdownContext = markdownTempate({ issues });
   const markdownDestPath = path.join(destDirPath, 'index.md');
   await FileUtil.write(markdownDestPath, markdownContext);
+
+  // CSVで出力
+  const csvTempateSrc = await FileUtil.read(
+    path.join(__dirname, 'template-csv.handlebars')
+  );
+  const csvTempate = Handlebars.compile(csvTempateSrc);
+  const csvContext = csvTempate({ issues });
+  const csvDestPath = path.join(destDirPath, 'index.csv');
+  await FileUtil.write(csvDestPath, csvContext);
+
 
   // HTMLで出力
   const htmlTempateSrc = await FileUtil.read(path.join(__dirname, 'template-html.handlebars'));

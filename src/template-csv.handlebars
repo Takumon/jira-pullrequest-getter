@@ -1,0 +1,59 @@
+{{!--
+列ヘッダ
+  |JIRAイシュー番号
+  |JIRAイシューリンク
+  |JIRAイシュータイトル ""
+  |JIRAイシュー概要 """
+  |GitHubプルリクエスト対象リポジトリ
+  |GitHubプルリクエスト番号
+  |GitHubプルリクエスト概要 ""
+  |GitHubプルリクエストリンク
+  |GitHubソースのファイルパス
+  |GitHubソースの単純ファイル名
+  |GitHubソースのステータス
+  |GitHubソース差分へのリンク
+  |SVN検索結果のステータス
+  |SVNソースのファイルパス(URL)
+  |SVNソース差分へのリンク
+
+  ※SVN情報がない場合でも最低１行出力する
+--}}
+"JIRAイシュー番号","JIRAイシューリンク","JIRAイシュータイトル","JIRAイシュー概要","GitHubプルリクエスト対象リポジトリ","GitHubプルリクエスト番号","GitHubプルリクエスト概要","GitHubプルリクエストリンク","GitHubソースのファイルパス","GitHubソースの単純ファイル名","GitHubソースのステータス","GitHubソース差分へのリンク","SVNソースのファイルパス(URL)","SVNソース差分へのリンク"
+{{#issues}}
+  {{key}} {{!-- JIRAイシュー番号 --}}
+  ({{url}}) {{!-- JIRAイシューリンク --}}
+  {{summary}} {{!-- JIRAイシュータイトル --}}
+  {{description}} {{!-- JIRAイシュー概要 --}}
+  {{#modifiedPullRequestDetails}}
+    {{repository}} {{!-- GitHubプルリクエスト対象リポジトリ --}}
+    http://github.com/{{owner}}/{{repository}} {{!-- GitHubプルリクエストリンク --}}
+    {{#files}}
+      {{filename}} {{!-- GitHubソースのファイルパス --}}
+      {{simpleName filename}} {{!-- GitHubソースの単純ファイル名 --}}
+      {{#pullRequests}}
+        {{pullRequestNumber}} {{!-- GitHubプルリクエスト番号 --}}
+        {{status}} {{!-- GitHubソースのステータス --}}
+        {{../../../key}}/{{../../repository}}/{{../filename}}.{{pullRequestNumber}}.{{status}}.patch.html {{!-- GitHubソース差分へのリンク --}}
+        {{#ifCond @index 0}} {{!-- SVN情報は最古のプルリクエストにのみ付与 --}}
+          {{#svnInfo}}
+            {{#ifCond status '候補なし'}}
+              {{status}} {{!-- SVN検索結果のステータス --}}
+              - {{!-- SVNソースのファイルパス(URL) プルリクエストが追加なので候補は存在しない --}}
+              - {{!-- SVNソース差分へのリンク プルリクエストが追加なので候補は存在しない --}}
+            {{else}}
+              {{status}} {{!-- SVN検索結果のステータス --}}
+              {{#svnInfo.files}}
+                {{url}} {{!-- SVNソースのファイルパス(URL) --}}
+                {{../../../../key}}/{{../../../repository}}/{{../../filename}}.{{../pullRequestNumber}}.{{../status}}.patch.svn_{{@index}}.html {{!-- SVNソース差分へのリンク --}}
+              {{/svnInfo.files}}
+            {{/ifCond}}
+          {{/svnInfo}}
+        {{else}}
+          - {{!-- SVN検索結果のステータス --}}
+          - {{!-- SVNソースのファイルパス(URL) プルリクエストが追加なので候補は存在しない --}}
+          - {{!-- SVNソース差分へのリンク プルリクエストが追加なので候補は存在しない --}}
+        {{/ifCond}}
+      {{/pullRequests}}
+    {{/files}}
+  {{/modifiedPullRequestDetails}}
+{{/issues}}
