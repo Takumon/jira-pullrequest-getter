@@ -1,5 +1,6 @@
 const mkdirp = require('mkdirp');
 const path = require('path');
+const iconv = require('iconv-lite');
 const marked = require('marked');
 const Handlebars = require('Handlebars');
 Handlebars.registerHelper('ifCond', function(v1, v2, options) {
@@ -41,8 +42,11 @@ const createReport = async (destDirPath, issues) => {
   const csvContext = csvTempate({
     csvLines: createCsvLines(issues)
   });
+
+  encodedCsvContext = iconv.encode( csvContext , 'Shift_JIS' );
+
   const csvDestPath = path.join(destDirPath, 'index.csv');
-  await FileUtil.write(csvDestPath, csvContext);
+  await FileUtil.write(csvDestPath, encodedCsvContext);
 
 
   // HTMLで出力
@@ -70,12 +74,12 @@ const createCsvLines = (issues) => {
                 jiraSummary: issue.summary,
                 jiraDescription: issue.description,
                 githubRepository: githubDetail.repository,
-                githubPullRequestUrl: `http://github.com/${githubDetail.owner}/${githubDetail.repository}`,
+                githubPullRequestUrl: `http://github.com/${githubDetail.owner}/${githubDetail.repository}/pull/${pullRequest.pullRequestNumber}/files`,
                 githubFileName: githubFile.filename,
                 githubSimpleFileName: path.basename(githubFile.filename),
                 pullRequestNumber: pullRequest.pullRequestNumber,
                 pullRequestStatus: pullRequest.status,
-                pullRequestDiff: `${issue.key}/${githubDetail.repository}/${githubDetail.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.html`,
+                pullRequestDiff: `${issue.key}/${githubDetail.repository}/${githubFile.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.html`,
                 svnStatus: pullRequest.svnInfo.status,
                 svnUrl: '-',
                 svnDiff: '-'
@@ -89,15 +93,15 @@ const createCsvLines = (issues) => {
                   jiraSummary: issue.summary,
                   jiraDescription: issue.description,
                   githubRepository: githubDetail.repository,
-                  githubPullRequestUrl: `http://github.com/${githubDetail.owner}/${githubDetail.repository}`,
+                  githubPullRequestUrl: `http://github.com/${githubDetail.owner}/${githubDetail.repository}/pull/${pullRequest.pullRequestNumber}/files`,
                   githubFileName: githubFile.filename,
                   githubSimpleFileName: path.basename(githubFile.filename),
                   pullRequestNumber: pullRequest.pullRequestNumber,
                   pullRequestStatus: pullRequest.status,
-                  pullRequestDiff: `${issue.key}/${githubDetail.repository}/${githubDetail.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.html`,
+                  pullRequestDiff: `${issue.key}/${githubDetail.repository}/${githubFile.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.html`,
                   svnStatus: pullRequest.svnInfo.status,
                   svnUrl: svnFile.url,
-                  svnDiff: `${issue.key}/${githubDetail.repository}/${githubDetail.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.svn_${index}.html`
+                  svnDiff: `${issue.key}/${githubDetail.repository}/${githubFile.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.svn_${index}.html`
                 });
               });
             }
@@ -108,12 +112,12 @@ const createCsvLines = (issues) => {
               jiraSummary: issue.summary,
               jiraDescription: issue.description,
               githubRepository: githubDetail.repository,
-              githubPullRequestUrl: `http://github.com/${githubDetail.owner}/${githubDetail.repository}`,
+              githubPullRequestUrl: `http://github.com/${githubDetail.owner}/${githubDetail.repository}/pull/${pullRequest.pullRequestNumber}/files`,
               githubFileName: githubFile.filename,
               githubSimpleFileName: path.basename(githubFile.filename),
               pullRequestNumber: pullRequest.pullRequestNumber,
               pullRequestStatus: pullRequest.status,
-              pullRequestDiff: `${issue.key}/${githubDetail.repository}/${githubDetail.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.html`,
+              pullRequestDiff: `${issue.key}/${githubDetail.repository}/${githubFile.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.html`,
               svnStatus: '-',
               svnUrl: '-',
               svnDiff: '-'
