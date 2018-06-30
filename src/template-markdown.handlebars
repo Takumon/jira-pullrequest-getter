@@ -22,7 +22,7 @@
   * {{filename}}
     * GitHub{{#if allPullRequestDiff}} [All Diff]({{{allPullRequestDiff}}}) {{/if}}
     {{#pullRequests}}
-      * #{{pullRequestNumber}} [Diff]({{../../../key}}/{{../../repository}}/{{../filename}}.{{pullRequestNumber}}.{{status}}.patch.html) ({{status}}) [{{filename}}]({{url_after}})
+      * #{{pullRequestNumber}} [Diff]({{../../../key}}/{{../../repository}}/{{../filename}}.{{pullRequestNumber}}.{{status}}.patch.html) ({{status}}) [After PullRequest]({{url_after}})
     {{/pullRequests}}
     * SVN({{pullRequests.0.svnInfo.status}})
     {{#ifCond pullRequests.0.svnInfo.status 'added'}}
