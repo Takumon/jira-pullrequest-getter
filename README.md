@@ -1,10 +1,14 @@
 # jira-pullrequest-getter
+こんな作業を自動化します。
 
-JIRA の指定した ISSUE に紐づくファイル一覧を GitHub と SVN から取得
+![作業概要](./image/作業概要.png)
+
+
+![調査結果概要](./image/調査結果概要.png)
 
 
 ## シーケンス図
-![シーケンス図](./sequence.png)
+![シーケンス図](./image/sequence.png)
 
 ## 起動方法
 
