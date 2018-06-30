@@ -1,0 +1,53 @@
+@startuml
+actor ユーザ
+ユーザ -> index.js : アプリ起動
+index.js -> jira.js : JIRAの認証処理
+activate jira.js
+  index.js <-- jira.js : 認証トークンを返却
+
+  loop JIRAのISSUEごと
+  index.js -> jira.js : JIRAのISSUE概要取得
+  index.js <-- jira.js
+  end
+
+
+  loop JIRAのISSUEごと
+  index.js -> jira.js : JIRAのISSUEに紐づく\nプルリクエスト概要情報を取得
+  index.js <-- jira.js
+  end
+deactivate jira.js
+
+index.js -> index.js : プルリクエスト概要情報をリポジトリごとに\nグルーピングしモジュール情報を作成
+
+
+loop プルリクエスト概要情報ごと
+index.js -> github.js : プルリクエスト詳細情報を取得
+activate github.js
+  github.js -> github.js : プルリクエスト概要情報を取得
+  github.js -> github.js : プルリクエストに紐づく\nファイル情報を取得(プルリク前後のファイル内容、差分)
+
+  loop プルリクエストに紐づくファイルごと
+  github.js -> svn.js : GitHubのファイルに相当するファイルを\nSVNから取得(SVNのURL、ファイル内容)
+  activate svn.js
+    svn.js -> svn.js : SVNのファイルパス一覧を取得\n（ファイルキャッシュがあればそれを使う）
+    github.js <-- svn.js : GitHubの単純ファイル名と単純ファイル名が\n一致するSVNファイル情報を返却
+  deactivate svn.js
+  end
+
+  index.js <-- github.js : SVN情報含めて\nプルリクエスト詳細情報を返却
+deactivate github.js
+end
+
+index.js -> index.js : プルリクエスト詳細情報を\nリポジトリごとグルーピング
+index.js -> report.js : プルリクエスト詳細情報をもとに、\nプルリク前後の差分と、プルリク前とSVNの差分を出力
+activate report.js
+  report.js -> diff_util.js : 差分をHTMLで出力
+  activate diff_util.js
+    report.js <-- diff_util.js
+  deactivate diff_util.js
+  index.js <-- report.js
+
+  index.js -> report.js : プルリクエスト詳細情報をもとに、\nレポート出力
+  index.js <-- report.js
+deactivate report.js
+@enduml
