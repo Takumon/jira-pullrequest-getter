@@ -38,7 +38,9 @@ const createReport = async (destDirPath, issues) => {
     path.join(__dirname, 'template-csv.handlebars')
   );
   const csvTempate = Handlebars.compile(csvTempateSrc);
-  const csvContext = csvTempate({ issues });
+  const csvContext = csvTempate({
+    csvLines: createCsvLines(issues)
+  });
   const csvDestPath = path.join(destDirPath, 'index.csv');
   await FileUtil.write(csvDestPath, csvContext);
 
@@ -49,6 +51,80 @@ const createReport = async (destDirPath, issues) => {
   const htmlContext = htmlTempate({ html_markdown: marked(markdownContext) });
   const htmlDestPath = path.join(destDirPath, 'index.html');
   await FileUtil.write(htmlDestPath, htmlContext);
+};
+
+// CSV用に正規化したオブジェクトを返す
+const createCsvLines = (issues) => {
+  const result = [];
+  issues.forEach(issue => {
+    issue.modifiedPullRequestDetails.forEach(githubDetail => {
+      githubDetail.files.forEach(githubFile => {
+        githubFile.pullRequests.forEach((pullRequest, index) => {
+
+          // プルリクエスト情報は最初のみ表示する
+          if (index == 0) {
+            if (pullRequest.svnInfo.status === '候補なし') {
+              result.push({
+                jiraKey: issue.key,
+                jiraUrl: issue.url,
+                jiraSummary: issue.summary,
+                jiraDescription: issue.description,
+                githubRepository: githubDetail.repository,
+                githubPullRequestUrl: `http://github.com/${githubDetail.owner}/${githubDetail.repository}`,
+                githubFileName: githubFile.filename,
+                githubSimpleFileName: path.basename(githubFile.filename),
+                pullRequestNumber: pullRequest.pullRequestNumber,
+                pullRequestStatus: pullRequest.status,
+                pullRequestDiff: `${issue.key}/${githubDetail.repository}/${githubDetail.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.html`,
+                svnStatus: pullRequest.svnInfo.status,
+                svnUrl: '-',
+                svnDiff: '-'
+              });
+
+            } else {
+              pullRequest.svnInfo.files.forEach((svnFile, index) => {
+                result.push({
+                  jiraKey: issue.key,
+                  jiraUrl: issue.url,
+                  jiraSummary: issue.summary,
+                  jiraDescription: issue.description,
+                  githubRepository: githubDetail.repository,
+                  githubPullRequestUrl: `http://github.com/${githubDetail.owner}/${githubDetail.repository}`,
+                  githubFileName: githubFile.filename,
+                  githubSimpleFileName: path.basename(githubFile.filename),
+                  pullRequestNumber: pullRequest.pullRequestNumber,
+                  pullRequestStatus: pullRequest.status,
+                  pullRequestDiff: `${issue.key}/${githubDetail.repository}/${githubDetail.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.html`,
+                  svnStatus: pullRequest.svnInfo.status,
+                  svnUrl: svnFile.url,
+                  svnDiff: `${issue.key}/${githubDetail.repository}/${githubDetail.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.svn_${index}.html`
+                });
+              });
+            }
+          } else {
+            result.push({
+              jiraKey: issue.key,
+              jiraUrl: issue.url,
+              jiraSummary: issue.summary,
+              jiraDescription: issue.description,
+              githubRepository: githubDetail.repository,
+              githubPullRequestUrl: `http://github.com/${githubDetail.owner}/${githubDetail.repository}`,
+              githubFileName: githubFile.filename,
+              githubSimpleFileName: path.basename(githubFile.filename),
+              pullRequestNumber: pullRequest.pullRequestNumber,
+              pullRequestStatus: pullRequest.status,
+              pullRequestDiff: `${issue.key}/${githubDetail.repository}/${githubDetail.filename}.${pullRequest.pullRequestNumber}.${pullRequest.status}.patch.html`,
+              svnStatus: '-',
+              svnUrl: '-',
+              svnDiff: '-'
+            });
+          }
+        });
+      });
+    });
+  });
+
+  return result;
 };
 
 // TODO GitHubのPatchは改行コードを無視したい
