@@ -29,7 +29,7 @@
     {{!-- 追加時はSVNにもファイルがないため差分比較は存在しないので、リンクは表示しない --}}
     {{else}}
       {{#pullRequests.0.svnInfo.files}}
-      * [Diff]({{../../../../key}}/{{../../../repository}}/{{../../filename}}.{{../pullRequestNumber}}.{{../status}}.patch.svn_{{@index}}.html) {{url}}
+      * [Diff]({{../../../key}}/{{../../repository}}/{{../filename}}.{{../pullRequests.0.pullRequestNumber}}.{{../pullRequests.0.status}}.patch.svn_{{@index}}.html) {{url}}
       {{/pullRequests.0.svnInfo.files}}
     {{/ifCond}}
   {{/files}}

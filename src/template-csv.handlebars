@@ -19,5 +19,5 @@
   ※SVN情報がない場合でも最低１行出力する
 --}}
 "JIRAイシュー番号","JIRAイシューリンク","JIRAイシュータイトル","JIRAイシュー概要","GitHubプルリクエスト対象リポジトリ","GitHubプルリクエスト番号","GitHubプルリクエストリンク","GitHubソースのファイルパス","GitHubソースの単純ファイル名","GitHubソースのステータス","GitHubソース差分へのリンク","SVN検索結果のステータス","SVNソースのファイルパス(URL)","SVNソース差分へのリンク"
-{{#csvLines}}"{{jiraKey}}","{{jiraUrl}}","{{jiraSummary}}","{{jiraDescription}}","{{githubRepository}}","{{pullRequestNumber}}","{{githubPullRequestUrl}}","{{githubFileName}}","{{githubSimpleFileName}}","{{pullRequestStatus}}","{{pullRequestDiff}}","{{svnStatus}}","{{svnUrl}}","{{svnDiff}}"
+{{#csvLines}}"{{jiraKey}}","=HYPERLINK(""{{jiraUrl}}"",""リンク"")","{{jiraSummary}}","{{jiraDescription}}","{{githubRepository}}","{{pullRequestNumber}}","=HYPERLINK(""{{githubPullRequestUrl}}"",""リンク"")","{{githubFileName}}","{{githubSimpleFileName}}","{{pullRequestStatus}}","=HYPERLINK(""{{pullRequestDiff}}"",""リンク"")","{{svnStatus}}","{{svnUrl}}",{{#ifCond svnDiff "-"}}"{{svnDiff}}"{{else}}"=HYPERLINK(""{{svnDiff}}"",""リンク"")"{{/ifCond}}
 {{/csvLines}}
